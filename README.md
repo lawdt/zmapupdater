@@ -1,4 +1,5 @@
-Script is update zabbix wifi maps.
+Script  **zabbix_map_wifi_aruba_update.py**
+is update zabbix wifi maps.
 It search map, names begins with AP, and then check items, add
 - Triggers, if it persist on wifi Controllers Aruba or HP MSM
 - Mac adress (only for Aruba)
