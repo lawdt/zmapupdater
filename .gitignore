@@ -1,3 +1,4 @@
 mapchanger.conf
 .idea/
 venv/
+.gitignore
