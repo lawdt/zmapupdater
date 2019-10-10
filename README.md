@@ -8,3 +8,11 @@ It search map, names begins with AP, and then check items, add
 script also use zabbix_sender to update item "Scripts wifi maps update status" on zabbix server. It used to control script function.
 
 To first use, modify username and password in file "mapchanger.conf.example" and rename it to "mapchanger.conf"
+
+usage: zabbix_map_wifi_aruba_update.py [-h] [-p] [-all] [-m M]
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -p          Print map names
+  -all        Change all AP maps
+  -m M        change only one map id, not work with -all
