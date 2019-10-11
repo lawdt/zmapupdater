@@ -1,5 +1,5 @@
 [Settings]
 username = username
 password = password
-font_style = Normal
-
+aruba_host = ru1-aruba-mc01
+msm_host = HP MSM WiFi controller

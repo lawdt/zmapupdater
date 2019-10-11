@@ -4,24 +4,26 @@ from pyzabbix import ZabbixAPI,ZabbixAPIException
 import argparse,sys,re,os,configparser
 
 def get_triggers(label):
-    return zapi.trigger.get(host=aruba_host,output="triggerid",search={"description": "Access Point "+label},filter={"status": "0"})
-def get_mac(label):
-    return zapi.item.get(host=aruba_host, output=["itemid","lastvalue"], application="Hardware", search={"name": "*" + label + "*Mac"}, searchWildcardsEnabled="true")
+    return zapi.trigger.get(host=msm_host,output="triggerid",search={"description": "Access Point "+label},filter={"status": "0"})
+'''def get_mac(label):
+    return zapi.item.get(host=msm_host, output=["itemid","lastvalue"], application="Hardware", search={"name": "*" + label + "*Mac"}, searchWildcardsEnabled="true")
 def get_channels(label):
-    chan1 = zapi.item.get(host=aruba_host, output=["itemid", "lastvalue"], application="Hardware", search={"name": "*" + label + "*channel1"}, searchWildcardsEnabled="true")
-    chan2 = zapi.item.get(host=aruba_host, output=["itemid", "lastvalue"], application="Hardware", search={"name": "*" + label + "*channel2"}, searchWildcardsEnabled="true")
+    chan1 = zapi.item.get(host=msm_host, output=["itemid", "lastvalue"], application="Hardware", search={"name": "*" + label + "*channel1"}, searchWildcardsEnabled="true")
+    chan2 = zapi.item.get(host=msm_host, output=["itemid", "lastvalue"], application="Hardware", search={"name": "*" + label + "*channel2"}, searchWildcardsEnabled="true")
     if chan1 and chan2:
         return "Channels: " + chan1[0]['lastvalue'] + ", " + chan2[0]['lastvalue']
     else: return ""
+    '''
 def map_change(map_id):
     # get map elements
     mapp = zapi.map.get(sysmapids=map_id, selectSelements="extend")
     print("Map Name: " + mapp[0]['name'])
     triggers_count = 0
-    channels_count = 0
-    mac_count = 0
+    #channels_count = 0
+    #mac_count = 0
     for i in mapp[0]['selements']:
         if i['label'][0:2] == 'AP':  # если в название элемента есть AP то
+            '''
             mac = get_mac(i['label'][0:5])  # ищем мак адрес через айтем
             if mac:
                 mac_count+=1
@@ -41,6 +43,7 @@ def map_change(map_id):
                     i['label'] = re.sub(r"Channels: \d+, \d+", channels, i['label'])
                 else:
                     i['label'] = i['label'] + "\n" + channels  # если нет Канала в названии то добавляем его
+                    '''
             triggers = get_triggers(i['label'][0:5])  # получаем триггеры, завязаные на эту точку
             if triggers:
                 i['elements'] = triggers  # добавляем связь на эти триггеры
@@ -54,13 +57,13 @@ def map_change(map_id):
     #print(mapp[0]['selements'])
     try:
         zapi.map.update(sysmapid=map_id, selements=mapp[0]['selements'])  # пушим наши изменения в карту
-        print("processed:\n" + "Triggers: "+str(triggers_count)+ "\nMacs: "+ str(mac_count)+"\nChannels: "+str(channels_count))
+        print("processed:\n" + "Triggers: "+str(triggers_count))
         os.system('zabbix_sender -z ru_monitoring -s "Zabbix server" -k script.wifi.map.status -o 0')
     except ZabbixAPIException as e:
         print(e)
         os.system('zabbix_sender -z ru_monitoring -s "Zabbix server" -k script.wifi.map.status -lo 1')
 def crudConfig(path):
-    global username,password,aruba_host
+    global username,password,msm_host
     """
        Create, read, update, delete config
        """
@@ -73,7 +76,7 @@ def crudConfig(path):
     # Читаем некоторые значения из конфиг. файла.
     username = config.get("Settings", "username")
     password = config.get("Settings", "password")
-    aruba_host = config.get("Settings", "aruba_host")
+    msm_host = config.get("Settings", "msm_host")
 def createConfig(path):
     """
     Create a config file
@@ -82,22 +85,22 @@ def createConfig(path):
     config.add_section("Settings")
     config.set("Settings", "username", "username")
     config.set("Settings", "password", "password")
-    config.set("Settings", "aruba_host", "ru1-aruba-mc01")
+    config.set("Settings", "msm_host", "HP MSM WiFi controller")
     with open(path, "w") as config_file:
         config.write(config_file)
 # печатаем приветствие, начинаем работать
-print("Hello. This script wolud modify Aruba APs from simple images to Interactive objects with connected triggers. Script scan map for AP items and connect triggers to them")
+print("Hello. This script wolud modify HP MSM APs from simple images to Interactive objects with connected triggers. Script scan map for AP items and connect triggers to them")
 print("---------------------")
 
 # считываем конфиг с паролем , пользователем, и другими параметрами
 # определяем переменные, не используйте для установки. Используйте вместо этого параметры в конфиг файле mapchanger.conf
 username="none"
 password="none"
-aruba_host="none"
+msm_host="none"
 path=os.path.dirname(os.path.abspath(__file__))+"\mapchanger.conf"
 #print(path)
 crudConfig(path)
-#print(username,password)
+#print(msm_host)
 
 # парсим аргументы, маленькая помощь при запуске. либо печатаем карты либо изменяем одну.
 parser = argparse.ArgumentParser(description='sample app for map triggers to access points maps')
