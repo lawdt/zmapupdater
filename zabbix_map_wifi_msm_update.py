@@ -6,20 +6,20 @@ import argparse,sys,re,os,configparser
 def get_triggers(label):
     return zapi.trigger.get(host=msm_host,output="triggerid",search={"description": "Access Point "+label},filter={"status": "0"})
 '''def get_mac(label):
-    return zapi.item.get(host=msm_host, output=["itemid","lastvalue"], application="Hardware", search={"name": "*" + label + "*Mac"}, searchWildcardsEnabled="true")
+    return zapi.item.get(host=msm_host, output=["itemid","lastvalue"], application="Hardware", search={"name": "*" + label + "*Mac"}, searchWildcardsEnabled="true") '''
 def get_channels(label):
-    chan1 = zapi.item.get(host=msm_host, output=["itemid", "lastvalue"], application="Hardware", search={"name": "*" + label + "*channel1"}, searchWildcardsEnabled="true")
-    chan2 = zapi.item.get(host=msm_host, output=["itemid", "lastvalue"], application="Hardware", search={"name": "*" + label + "*channel2"}, searchWildcardsEnabled="true")
+    chan1 = zapi.item.get(host=msm_host, output=["itemid", "lastvalue"], application="Hardware", search={"name": "*" + label + "*na channel"}, searchWildcardsEnabled="true")
+    chan2 = zapi.item.get(host=msm_host, output=["itemid", "lastvalue"], application="Hardware", search={"name": "*" + label + "*ng channel"}, searchWildcardsEnabled="true")
     if chan1 and chan2:
         return "Channels: " + chan1[0]['lastvalue'] + ", " + chan2[0]['lastvalue']
     else: return ""
-    '''
+
 def map_change(map_id):
     # get map elements
     mapp = zapi.map.get(sysmapids=map_id, selectSelements="extend")
     print("Map Name: " + mapp[0]['name'])
     triggers_count = 0
-    #channels_count = 0
+    channels_count = 0
     #mac_count = 0
     for i in mapp[0]['selements']:
         if i['label'][0:2] == 'AP':  # если в название элемента есть AP то
@@ -35,7 +35,7 @@ def map_change(map_id):
                                         i['label'])  # меняем мак
                 else:
                     i['label'] = i['label'] + "\nMac:" + mac[0][
-                        'lastvalue']  # если нет мака в названии то добавляем его
+                        'lastvalue']  # если нет мака в названии то добавляем его '''
             channels = get_channels(i['label'][0:5])  # ищем каналы на этой точке
             if channels:
                 channels_count += 1
@@ -43,7 +43,7 @@ def map_change(map_id):
                     i['label'] = re.sub(r"Channels: \d+, \d+", channels, i['label'])
                 else:
                     i['label'] = i['label'] + "\n" + channels  # если нет Канала в названии то добавляем его
-                    '''
+
             triggers = get_triggers(i['label'][0:5])  # получаем триггеры, завязаные на эту точку
             if triggers:
                 i['elements'] = triggers  # добавляем связь на эти триггеры
@@ -57,7 +57,7 @@ def map_change(map_id):
     #print(mapp[0]['selements'])
     try:
         zapi.map.update(sysmapid=map_id, selements=mapp[0]['selements'])  # пушим наши изменения в карту
-        print("processed:\n" + "Triggers: "+str(triggers_count))
+        print("processed:\n" + "Triggers: "+str(triggers_count)+"\nChannels: "+str(channels_count))
         os.system('zabbix_sender -z ru_monitoring -s "Zabbix server" -k script.wifi.map.status -o 0')
     except ZabbixAPIException as e:
         print(e)
@@ -77,6 +77,7 @@ def crudConfig(path):
     username = config.get("Settings", "username")
     password = config.get("Settings", "password")
     msm_host = config.get("Settings", "msm_host")
+    #print(username)
 def createConfig(path):
     """
     Create a config file
@@ -97,7 +98,7 @@ print("---------------------")
 username="none"
 password="none"
 msm_host="none"
-path=os.path.dirname(os.path.abspath(__file__))+"\mapchanger.conf"
+path=os.path.dirname(os.path.abspath(__file__))+"/mapchanger.conf"
 #print(path)
 crudConfig(path)
 #print(msm_host)

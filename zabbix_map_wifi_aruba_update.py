@@ -94,7 +94,7 @@ print("---------------------")
 username="none"
 password="none"
 aruba_host="none"
-path=os.path.dirname(os.path.abspath(__file__))+"\mapchanger.conf"
+path=os.path.dirname(os.path.abspath(__file__))+"/mapchanger.conf"
 #print(path)
 crudConfig(path)
 #print(username,password)
